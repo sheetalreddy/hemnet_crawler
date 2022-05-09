@@ -18,21 +18,14 @@ class QuotesSpider(scrapy.Spider):
     results = []
     dict_writer = None
     
-
-
     def __init__(self):
 
         dispatcher.connect(self.spider_closed, signals.spider_closed)
-
-
 
     def parse(self, response):
         
         for ad in response.css("ul#search-results.sold-results > li.sold-results__normal-hit > a::attr('href')"):
             adUrl = ad.get()
-            #ua = UserAgent(cache=False)
-            #token, agent = cfscrape.get_tokens(adUrl, ua['google chrome'])
-            #yield scrapy.Request(url=adUrl, cookies=token, headers={'User-Agent': agent}, callback=self.parseAd)
             time.sleep(3)
             yield scrapy.Request(url=adUrl, callback=self.parseAd)
 
@@ -49,7 +42,6 @@ class QuotesSpider(scrapy.Spider):
         address = address[1].replace('\n','')
         sold_date = response.css("p.sold-property__metadata.qa-sold-property-metadata >time::attr('datetime')").get()
         slutprice = response.css("div.sold-property__top-details > div.sold-property__price > span.sold-property__price-value::text").get()
-        print(sold_date)
         attrLabel=[]
         attrValue=[]
         for attr in response.css("div.sold-property__details > dl.sold-property__price-stats > dt.sold-property__attribute"):
@@ -79,13 +71,6 @@ class QuotesSpider(scrapy.Spider):
         res['Sale Date'] = sold_date
         self.results.append(res)
         
-
-
     def spider_closed(self, spider):
         with open('hemnet.json', 'w') as fp:
             json.dump(self.results, fp)
-        with open('housing_västerås.csv', 'w',newline='') as output_file:
-            #names = ['Pris per kvadratmeter','Tomträttsavgäld','Sale price','Sale Date', 'Begärt pris', 'Prisutveckling', 'Bostadstyp', 'Balkong', 'Våning','Upplåtelseform', 'Antal rum', 'Boarea', 'Biarea', 'Uteplats', 'Byggår', 'Avgift/månad', 'Driftskostnad','address','Tomtarea']
-            self.dict_writer = csv.DictWriter(output_file, self.results[0].keys())
-            self.dict_writer.writeheader()
-            self.dict_writer.writerows(self.results)
